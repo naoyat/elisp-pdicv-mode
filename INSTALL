@@ -1,0 +1,70 @@
+■ PDICViewer for Emacs のインストール方法
+
+  (1) 配布パッケージに含まれる *.el ファイルを適切な場所にコピー
+
+　　※以下の例では ~/site-lisp/pdicviewer/ にインストールしています。
+
+  (2) 辞書ファイルのインストール
+
+    辞書ファイルを任意のディレクトリに配置します。
+    辞書ファイル名は配布されたもののままにしておくことを推奨します。
+
+  (3) pdicviewer.el を編集
+
+　　インストールした辞書のフルパス名を pdicviewer.el に登録します。
+
+  (4) ~/.emacs を編集
+
+　　以下のような記述を .emacs に追加します。
+
+    (setq load-path
+          (append (list (expand-file-name "~/site-lisp/pdicviewer")) load-path))
+          ; PDICViewer for Emacs プログラム（pdicviewer.el他）があるPATHを指定。
+    (autoload 'pdicv "pdicviewer"
+      "\
+    PDIC辞書検索"
+      t)
+    ;; eijiro
+    (global-set-key "\C-c\C-e" 'pdicv-eijiro-search-interactive)
+    (global-set-key "\C-c\C-r" 'pdicv-eijiro-search-region)
+    ;; general
+    (global-set-key "\C-c\C-d" 'pdicv-set-current-dictionary)
+    (global-set-key "\C-c\C-i" 'pdicv-search-interactive)
+    (global-set-key "\C-c\C-j" 'pdicv-search-region)
+    (global-set-key "\C-c\C-p" 'pdicv-mode)
+
+  (5) *.el ファイルのバイトコンパイル
+
+    付属の Makefile を適宜修正してから make して下さい。
+
+
+■ 利用法
+
+　　起動後に、M-x pdicv で辞書インデックスの読み込みが行われます。
+　　（英辞郎/和英辞郎を読み込んでも数秒です。）
+
+　(1) バッファ上のテキストを、辞書を使いながら読む
+
+　　pdicv-mode を使います。C-c C-p で pdicv-mode をトグルします。
+　　pdicv-mode はマイナーモードです。
+
+　　デフォルトのキーバインドでは
+　　　C-c C-a : カーソル位置の単語を検索
+　　　C-c C-c : 次の単語を検索
+　　　C-c C-b : 前の単語を検索
+　　となっています。（pdicv-mode.el で設定します）
+　　初回に辞書指定を要求されますので、（eijiro など）使いたい辞書を指定します。
+　　（辞書は C-c C-d で随時指定可能です）
+
+  (2) リージョン指定で辞書検索
+　　（pdicv-mode に入る必要はありません）
+
+　　検索したい単語（あるいは熟語表現）をリージョン指定して、C-c C-j で検索します。
+　　（英辞郎/和英辞郎で検索する場合 C-c C-r を使います）
+
+　(3) ミニバッファで単語を入力して検索
+　　（pdicv-mode に入る必要はありません）
+
+　　C-c C-i で、ミニバッファに単語入力プロンプトが出ますので単語を入力して下さい。
+　　（英辞郎/和英辞郎で検索する場合 C-c C-e を使います）
+
