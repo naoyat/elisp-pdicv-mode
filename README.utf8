@@ -33,4 +33,4 @@
    
 
 ◎ 一次配布元
-   svn://lambdarepos.svnrepository.com/svn/share/lang/elisp/pdicv-mode/trunk
+   svn co http://lambdarepos.svnrepository.com/svn/share/lang/elisp/pdicv-mode/trunk
