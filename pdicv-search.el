@@ -1,14 +1,15 @@
 ;;; pdicv-search.el --- upper layer
 ;;
-;; Copyright (C) 2005 Naoya TOZUKA. All Rights Reserved.
+;; Copyright (C) 2005-2009 naoya_t. All Rights Reserved.
 ;;
-;; Author: Naoya TOZUKA <pdicviewer@gmail.com>
-;; Maintainer: Naoya TOZUKA <pdicviewer@gmail.com>
-;; Primary distribution site: http://pdicviewer.naochan.com/el/
+;; Author: naoya_t <naoya.t@aqua.plala.or.jp>
+;; Maintainer: naoya_t <naoya.t@aqua.plala.or.jp>
+;; Primary distribution site:
+;;   http://lambdarepos.svnrepository.com/svn/share/lang/elisp/pdicv-mode/trunk
 ;;
 ;; Created: 06 Feb 2005
 ;; Last modified: 23 Dec 2005
-;; Version: 0.9.1
+;; Version: 0.9.2
 ;; Keywords: read-from-file
 
 (provide 'pdicv-search)
@@ -83,13 +84,11 @@
 (defun pdicv-search-regexp (dicname regexp-to-search &optional field-to-search)
   ""
 ;  (pdicv-search dicname nil regexp-to-search t field-to-search)
-  (pdicv-search dicname regexp-to-search nil t field-to-search)
-  )
+  (pdicv-search dicname regexp-to-search nil t field-to-search))
 
 (defun pdicv-search-just (dicname word-to-search &optional field-to-search)
   ""
-  (pdicv-search dicname word-to-search t nil field-to-search)
-  )
+  (pdicv-search dicname word-to-search t nil field-to-search))
 
 (defun pdicv-search (dicname word-to-search &optional just-p regexp-p field-to-search)
   ""
@@ -99,11 +98,13 @@
 
   (catch 'pdicv-search
     (let ((candidates
-           (if just-p (cons (downcase word-to-search) (nt:english-guess-original-form word-to-search))))
+           (if just-p (cons (downcase word-to-search) (nt:english-guess-original-form word-to-search))
+			 (list word-to-search)
+			 ))
           (candidate word-to-search)
           (first-round-p t)
           (dicinfo (assoc dicname pdicv-dictionary-list)))
-
+	  ;;(debug candidates);(nt:english-guess-original-form word-to-search))
       (if (null dicinfo) (throw 'pdicv-search 'dictionary-not-found))
 
 ;      (push (downcase word-to-search) candidates)
@@ -116,10 +117,8 @@
             (let ((dicname-list (cadr dicinfo)))
               (while dicname-list
                 (pdicv-search (car dicname-list) candidate just-p regexp-p field-to-search)
-                (setq dicname-list (cdr dicname-list))
-                )
-              )
-                                        ;else...
+                (setq dicname-list (cdr dicname-list))))
+		  ;;else...
           (let* ((encoding-list (nth 2 dicinfo))
                  (word-encoding (if (listp encoding-list) (car encoding-list) encoding-list))
                  (word-in-dic-encoding (cond
@@ -166,7 +165,6 @@
 
                  );let*
                                         ;	  (insert (format "%s" criteria))
-
             (pdicv-core-search dicinfo criteria simple-mode-p (not first-round-p)) ; clear only at the first time
             );let*
           );fi
@@ -175,6 +173,7 @@
       );let
     );caught
   )
+ ;;debug
 
 (defun pdicv-search-interactive ()
   (interactive)

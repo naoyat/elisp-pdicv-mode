@@ -1,11 +1,11 @@
 ;;; nt-string.el --- NT's string utilities
-
 ;;
-;; Copyright (C) 2005 Naoya TOZUKA. All Rights Reserved.
+;; Copyright (C) 2005-2009 naoya_t. All Rights Reserved.
 ;;
-;; Author: Naoya TOZUKA <pdicviewer@gmail.com>
-;; Maintainer: Naoya TOZUKA <pdicviewer@gmail.com>
-;; Primary distribution site: http://pdicviewer.naochan.com/el/
+;; Author: naoya_t <naoya.t@aqua.plala.or.jp>
+;; Maintainer: naoya_t <naoya.t@aqua.plala.or.jp>
+;; Primary distribution site:
+;;   http://lambdarepos.svnrepository.com/svn/share/lang/elisp/pdicv-mode/trunk
 ;;
 ;; Created: 16 Feb 2005
 ;; Last modified: 15 Dec 2005
@@ -45,22 +45,19 @@
            (strncmp-p n) ; (not (null n))) ; t/nil
            (i 0))
 
-      (if n
-          (if (or (> n s1-length) (> n s2-length))
-              (setq n nil strncmp-p nil)))
-      (if (null n) 
-          (setq n (min s1-length s2-length)))
+      (when n
+		(when (or (> n s1-length) (> n s2-length))
+		  (setq n nil strncmp-p nil)))
+      (when (null n) 
+		(setq n (min s1-length s2-length)))
 
-      (if (zerop n) (throw 'strcmp 0))
-
+      (when (zerop n) (throw 'strcmp 0))
 
       (while (< i n)
         (let ((s1-i (aref s1 i))
               (s2-i (aref s2 i)))
-          (if (/= s1-i s2-i) (throw 'strcmp (- s1-i s2-i)))
-          );let
-        (setq i (1+ i))
-        );wend
+          (when (/= s1-i s2-i) (throw 'strcmp (- s1-i s2-i))))
+        (setq i (1+ i)))
 
       ;n文字目までs1=s2
       (if strncmp-p
@@ -83,15 +80,11 @@
            (i 0) (at 0))
       (while (<= i till)
         (setq at (string-match r str i))
-        (if (null at) (throw 'replace-in-string (concat result (substring str i))))
+        (when (null at) (throw 'replace-in-string (concat result (substring str i))))
 
         (setq result (concat result (substring str i at) n))
-        (setq i (+ at r-len))
-        ); wend
-      result
-      ); let
-    ); caught
-  )
+        (setq i (+ at r-len)))
+      result)))
 
 (defun nt:replace-all (str regex subst)
   "replace /regex/ in str --> subst"
@@ -104,50 +97,33 @@
           (if (setq found-at (string-match regex str ofs))
               (progn
                 (setq result (concat result (substring str ofs found-at) subst))
-                (setq ofs (match-end 0))
-                )
+                (setq ofs (match-end 0)))
             (progn
               (setq result (concat result (substring str ofs last)))
-              (throw 'while nil)
-              ))
-          );let
-        );wend
-      );caught
-    result
-    );let
-  )
+              (throw 'while nil))))))
+    result))
 
 (defun nt:rtrim (str)
   "rtrim"
   (catch 'rtrim
     (let ((i (1- (length str))))
       (while (> i 0)
-        (if (> (aref str i) #x20) (throw 'rtrim (substring str 0 (1+ i))))
-        (-- i)
-        );wend
-      );let
-    );caught
-  )
+        (when (> (aref str i) #x20) (throw 'rtrim (substring str 0 (1+ i))))
+        (-- i)))))
 
 (defun nt:ltrim (str)
   "ltrim"
   (catch 'ltrim
     (let ((len (length str)) (i 0))
       (while (< i len)
-        (if (> (aref str i) #x20) (throw 'ltrim (substring str i len)))
-        (++ i)
-        );wend
-      );let
-    );caught
-  )
+        (when (> (aref str i) #x20) (throw 'ltrim (substring str i len)))
+        (++ i)))))
 
 ;(defun nt:trim (str)
 ;  "trim"
-;  (nt:ltrim (nt:rtrim str))
-;  )
+;  (nt:ltrim (nt:rtrim str)))
 (defmacro nt:trim (str)
   "trim"
-  `(nt:ltrim (nt:rtrim ,str))
-  )
+  `(nt:ltrim (nt:rtrim ,str)))
 
 ;;; nt-string.el ends here

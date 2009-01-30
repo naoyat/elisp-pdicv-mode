@@ -1,32 +1,33 @@
 ;;; pdicv-core.el --- core functions for PDIC-formatted dictionaries
 ;;
-;; Copyright (C) 2005 Naoya TOZUKA. All Rights Reserved.
+;; Copyright (C) 2005-2009 naoya_t. All Rights Reserved.
 ;;
-;; Author: Naoya TOZUKA <pdicviewer@gmail.com>
-;; Maintainer: Naoya TOZUKA <pdicviewer@gmail.com>
-;; Primary distribution site: http://pdicviewer.naochan.com/el/
+;; Author: naoya_t <naoya.t@aqua.plala.or.jp>
+;; Maintainer: naoya_t <naoya.t@aqua.plala.or.jp>
+;; Primary distribution site:
+;;   http://lambdarepos.svnrepository.com/svn/share/lang/elisp/pdicv-mode/trunk
 ;;
 ;; Created: 14 Feb 2005
-;; Last modified: 23 Dec 2005
-;; Version: 0.9.1
-;; Keywords: PDIC dictionary search
+;; Last modified: 30 Jan 2009
+;; Version: 0.9.2
+;; Keywords: PDIC dictionary search eijiro
 
 (provide 'pdicv-core)
-;(put 'pdicv-core 'version "0.9.1")
+;(put 'pdicv-core 'version "0.9.2")
 
 ;;; Commentary:
 
 ; (pdicv-get-header-info FILENAME)
-;    - ¥Ø¥Ã¥À¾ðÊó¤òÆÉ¤ß¼è¤ë
+;    - ’¥Ø’¥Ã’¥À’¾ð’Êó’¤ò’ÆÉ’¤ß’¼è’¤ë
 ;
 ; (pdicv-get-index-list FILENAME [WORD-ENCODING])
-;    - PDIC¼­½ñ¥Õ¥¡¥¤¥ë¤«¤é¡¢¥¤¥ó¥Ç¥Ã¥¯¥¹¥ê¥¹¥È¤ò¼èÆÀ
+;    - PDIC’¼­’½ñ’¥Õ’¥¡’¥¤’¥ë’¤«’¤é’¡¢’¥¤’¥ó’¥Ç’¥Ã’¥¯’¥¹’¥ê’¥¹’¥È’¤ò’¼è’ÆÀ
 ;
 ; (pdicv-scan-datablock FILENAME PHYS CRITERIA-FUNC)
-;    - ¥Ç¡¼¥¿¥Ö¥í¥Ã¥¯¤ò¥¹¥­¥ã¥ó
+;    - ’¥Ç’¡¼’¥¿’¥Ö’¥í’¥Ã’¥¯’¤ò’¥¹’¥­’¥ã’¥ó
 ;
 ; (pdicv-core-search DICINFO CRITERIA [SIMPLE-MODE-P DONT-CLEAR-P])
-;    - PDIC¸¡º÷¡Ê¥³¥¢¥ë¡¼¥Á¥ó¡Ë
+;    - PDIC’¸¡’º÷’¡Ê’¥³’¥¢’¥ë’¡¼’¥Á’¥ó’¡Ë
 ;
 
 ;;; Code:
@@ -50,15 +51,15 @@
 
 (defvar pdicv-result-height 8)
 ;
-; ¥Ø¥Ã¥À¾ðÊó¤òÆÉ¤ß¼è¤ë
+; ’¥Ø’¥Ã’¥À’¾ð’Êó’¤ò’ÆÉ’¤ß’¼è’¤ë
 ;
 (defun pdicv-get-header-info (filename)
   "[PDIC] Get Header Info"
   (catch 'pdicv-get-header-info
     (let* ((header-buf (nt:read-from-file filename 0 256))
            ;
-           (headername nil);(substring header-buf 1 100))
-           (dictitle nil);(substring header-buf 101 140))
+           (headername nil); (substring header-buf 1 100))
+           (dictitle nil); (substring header-buf 101 140))
            (version (nt:read-short header-buf 140))
            (lword (nt:read-short header-buf 142))
            (ljapa (nt:read-short header-buf 144))
@@ -86,78 +87,96 @@
            )
 
       (setq version
-            (nth major-version '(not-supported not-supported newdic1 newdic2 newdic3 newdic4)))
+            (nth major-version '(not-supported not-supported newdic1 newdic2 newdic3 newdic4 unicode-bocu-6)))
 
       (setq dicorder
             (nth (nt:read-uchar header-buf 164) '(code-order ignore-case dictionary-order order-descendant)))
 
-      (if (> (logand dictype 128) 0) (setq dictype* (cons 'tree-view-mode dictype*)))
-      (if (> (logand dictype 64) 0) (setq dictype* (cons 'crypted dictype*)))
-;     (if (> (logand dictype 32) 0) (setq dictype* (cons 'multilingual dictype*)))
-      (if (> (logand dictype 16) 0) (setq dictype* (cons 'unicode dictype*)))
-      (if (> (logand dictype 8) 0) (setq dictype* (cons 'bocu dictype*)))
-      (if (> (logand dictype 1) 0) (setq dictype* (cons 'ar-compressed dictype*)))
+      (when (> (logand dictype 128) 0) (setq dictype* (cons 'tree-view-mode dictype*)))
+      (when (> (logand dictype 64) 0) (setq dictype* (cons 'crypted dictype*)))
+;     (when (> (logand dictype 32) 0) (setq dictype* (cons 'multilingual dictype*)))
+      (when (> (logand dictype 16) 0) (setq dictype* (cons 'unicode dictype*)))
+      (when (> (logand dictype 8) 0) (setq dictype* (cons 'bocu dictype*)))
+      (when (> (logand dictype 1) 0) (setq dictype* (cons 'ar-compressed dictype*)))
 
-      (if (= major-version 5)
-          (progn "HyperDIC, Ver 5.00"
-                 (setq os (nt:read-char header-buf 167))
-                 (setq os (cond ((= os 0) 'sjis-crlf)
-                                ((= os 1) 'sjis-cr)
-                                ((= os 2) 'sjis-lf)
-                                ((= os 3) 'euc-lf)
-                                ((= os 4) 'jis-lf)
-                                ((= os 32) 'bocu)
-                                ))
-                 (if (eq os 'bocu) (setq bocu t))
-                 (setq olenumber (nt:read-long header-buf 168))
-			       ;(setq lid-word (short header-buf 172))
-			       ;(setq lid-japa (short header-buf 174))
-				;(setq lid-exp (short header-buf 176))
-			       ;(setq lid-pron (short header-buf 178))
-			      ;(setq lid-other (short header-buf 180))
-                 (setq index-blkbit (if (= (nt:read-uchar header-buf 182) 1) 32 16))
-		 ; dummy0 @185
-                 (setq extheader (nt:read-ulong header-buf 184))
-                 (setq empty-block (nt:read-long header-buf 188)) ;overwrite
-                 (setq nindex (nt:read-long header-buf 192)) ;overwrite
-                 (setq nblock (nt:read-long header-buf 196)) ;overwrite
-                 (setq datablock-size (* nblock block-size))
-                 (setq cypt (substring header-buf 200 208)) ;- reserved[8]
-                 (setq update-count (nt:read-ulong header-buf 208))
+	  (case major-version
+		(6 "Ver 6.xx"
+		   (setq os (nt:read-char header-buf 167))
+		   (setq os (cond ((= os 0) 'sjis-crlf)
+						  ((= os 1) 'sjis-cr)
+						  ((= os 2) 'sjis-lf)
+						  ((= os 3) 'euc-lf)
+						  ((= os 4) 'jis-lf)
+						  ((= os 32) 'bocu)
+						  ))
+		   (when (eq os 'bocu) (setq bocu t))
+		   (setq olenumber (nt:read-long header-buf 168))
+		   ;; dummy_lid, 10 bytes
+		   (setq index-blkbit (if (= (nt:read-uchar header-buf 182) 1) 32 16))
+		   ;; dummy0 @185
+		   (setq extheader (nt:read-ulong header-buf 184))
+		   (setq empty-block (nt:read-long header-buf 188)) ;overwrite
+		   (setq nindex (nt:read-long header-buf 192)) ;overwrite
+		   (setq nblock (nt:read-long header-buf 196)) ;overwrite
+		   (setq datablock-size (* nblock block-size))
+		   (setq cypt (substring header-buf 200 208)) ;- reserved[8]
+		   (setq update-count (nt:read-ulong header-buf 208))
                                         ; dummy00 @212[4]
-                 (setq dicident (substring header-buf 216 224))
+		   (setq dicident (substring header-buf 216 224))
                                         ;(setq dummy (substring header-buf 224 256))
-                 (setq index-size (* index-block block-size)) ;overwrite
-
-                 );progn
-        (progn "< 5.0"
-               (if (>= major-version 3)
-                   (progn "NEWDIC2-"
-                          (setq olenumber (nt:read-long header-buf 167))
+		   (setq index-size (* index-block block-size)) ;overwrite
+		   );6
+		(5 "HyperDIC, Ver 5.00"
+		   (setq os (nt:read-char header-buf 167))
+		   (setq os (cond ((= os 0) 'sjis-crlf)
+						  ((= os 1) 'sjis-cr)
+						  ((= os 2) 'sjis-lf)
+						  ((= os 3) 'euc-lf)
+						  ((= os 4) 'jis-lf)
+						  ((= os 32) 'bocu)
+						  ))
+		   (when (eq os 'bocu) (setq bocu t))
+		   (setq olenumber (nt:read-long header-buf 168))
+		   (setq index-blkbit (if (= (nt:read-uchar header-buf 182) 1) 32 16))
+		   ;; dummy0 @185
+		   (setq extheader (nt:read-ulong header-buf 184))
+		   (setq empty-block (nt:read-long header-buf 188)) ;overwrite
+		   (setq nindex (nt:read-long header-buf 192)) ;overwrite
+		   (setq nblock (nt:read-long header-buf 196)) ;overwrite
+		   (setq datablock-size (* nblock block-size))
+		   (setq cypt (substring header-buf 200 208)) ;- reserved[8]
+		   (setq update-count (nt:read-ulong header-buf 208))
+                                        ; dummy00 @212[4]
+		   (setq dicident (substring header-buf 216 224))
+                                        ;(setq dummy (substring header-buf 224 256))
+		   (setq index-size (* index-block block-size)) ;overwrite
+		   );5
+		(t "< 5.0"
+		   (when (>= major-version 3)
+			 "NEWDIC2-"
+			 (setq olenumber (nt:read-long header-buf 167))
                                         ;(setq os (byte (substring header-buf 172 173)))
-                          (setq os (nth (nt:read-char header-buf 171) '(sjis-crlf)))
+			 (setq os (nth (nt:read-char header-buf 171) '(sjis-crlf)))
                                         ;(setq lid-word (short header-buf 172))
                                         ;(setq lid-japa (short header-buf 174))
                                         ;(setq lid-exp (short header-buf 176))
                                         ;(setq lid-pron (short header-buf 178))
                                         ;(setq lid-other (short header-buf 180))
-                          ))
-               (if (>= major-version 4)
-                   (progn "NEWDIC3-"
-                          (setq extheader (nt:read-ulong header-buf 182))
-                          (setq empty-block (nt:read-long header-buf 186)) ;overwrite
-                          (setq nindex (nt:read-long header-buf 190)) ;overwrite
-                          (setq nblock (nt:read-long header-buf 194)) ;overwrite
-                          (setq datablock-size (* nblock block-size))
-                          (setq index-blkbit (if (= (nt:read-uchar header-buf 198) 1) 32 16))
-                          (setq cypt (substring header-buf 200 208))
-                          (setq update-count (nt:read-ulong header-buf 207))
+			 )
+		   (when (>= major-version 4)
+			 "NEWDIC3-"
+			 (setq extheader (nt:read-ulong header-buf 182))
+			 (setq empty-block (nt:read-long header-buf 186)) ;overwrite
+			 (setq nindex (nt:read-long header-buf 190)) ;overwrite
+			 (setq nblock (nt:read-long header-buf 194)) ;overwrite
+			 (setq datablock-size (* nblock block-size))
+			 (setq index-blkbit (if (= (nt:read-uchar header-buf 198) 1) 32 16))
+			 (setq cypt (substring header-buf 200 208))
+			 (setq update-count (nt:read-ulong header-buf 207))
                                         ;(setq dummy (substring header-buf 212 256))
-                          (setq index-size (* index-block block-size)) ;overwrite
-                          ))
-	       ); < 5.0
-	);fi
-      
+			 (setq index-size (* index-block block-size)) ;overwrite
+			 )
+	       )); esac
       (list
 ;       (cons 'headername headername)   ;
 ;       (cons 'dictitle dictitle)       ;
@@ -190,34 +209,34 @@
        (cons 'datablock-begins-at (+ header-size extheader index-size))
        (cons 'datablock-ends-at (+ header-size extheader index-size datablock-size))
        (cons 'datablock-size datablock-size)
-       (cons 'bocu bocu)
-       ); list
-      ); let*
-    ); caught
-  )
+       (cons 'bocu bocu)))))
 
 (defun pdicv-get-index-list (filename &optional word-encoding)
   "[PDICV] Get the index list from PDIC file"
-  (let* (
-         (header (pdicv-get-header-info filename))
+  (let* ((header (pdicv-get-header-info filename))
          (index-buf (nt:read-from-file filename
 				    (-> header 'index-begins-at) (-> header 'index-size)))
 
          (32bit-address-mode (if (= (-> header 'index-blkbit) 32) t nil))
+		 (tab-sep-p (if (eq 'unicode-bocu-6 (-> header 'version)) t nil))
 
          (ix 0) (ix-max (-> header 'nindex))
          (ofs 0)
-         (index-list ())
-         )
-
+         (index-list ()))
     (while (< ix ix-max)
       (let ((phys -1) (word "") (word* nil))
         (if 32bit-address-mode
-            (progn (setq phys (nt:read-ulong index-buf ofs)) (setq ofs (+ ofs 4)))
-          (progn (setq phys (nt:read-ushort index-buf ofs)) (setq ofs (+ ofs 2)))
-          )
+            (progn (setq phys (nt:read-ulong index-buf ofs))
+				   (setq ofs (+ ofs 4)))
+          (progn (setq phys (nt:read-ushort index-buf ofs))
+				 (setq ofs (+ ofs 2))))
         (setq word* (nt:read-cstring index-buf ofs)) (setq ofs (+ ofs (cdr word*) 1))
         (setq word (car word*))
+
+		(when tab-sep-p
+		  (let ((tsv (split-string word "\t")))
+			(when (consp tsv)
+			  (setq word (car tsv)))))
 ;	(cond
 ;	 ((eq word-encoding 'bocu)
 ;	  (setq word (nt:bocu-decode word)))
@@ -230,11 +249,8 @@
 ;	(setq index-list (cons (cons phys word) index-list))
         (push (cons phys word) index-list)
         (setq ix (1+ ix))
-        );let
-      )
-    (nreverse index-list)
-    )
-  )
+        ))
+    (nreverse index-list) ))
 
 (defface pdicv-face-dummy
   '((( (class color) (background light) )
@@ -256,51 +272,46 @@
   "Face for text")
 
 (defvar pdicv-default-inserter
-      (lambda (eword pron jword example)
-        (progn
-          (set-text-properties 0 (length eword) '(face bold) eword)
+  (lambda (eword pron jword example)
+	(progn
+	  (set-text-properties 0 (length eword) '(face bold) eword)
                                         ;	(set-text-properties 0 (length eword) '(face pdicv-face-caption-green) eword)
                                         ;	(set-text-properties 0 (length jword) '(face pdicv-face-caption-gray) jword)
 
-          (setq jword (nt:replace-all jword "¢®¡ü" " // "))
-          (setq jword (nt:replace-all jword "\n" "\n  "))
+	  (setq jword (nt:replace-all jword "’¢®’¡ü" " // "))
+	  (setq jword (nt:replace-all jword "\n" "\n  "))
 
-          (let ((buf ""))
-            (setq buf eword)
-            (if (string< "" pron) (setq buf (concat buf " [" pron "]")))
+	  (let ((buf ""))
+		(setq buf eword)
+		(when (string< "" pron) (setq buf (concat buf " [" pron "]")))
                                         ;		(setq result (concat result " : " jword))
-            (setq buf (concat buf "\n  " jword))
-            (if (string< "" example) (setq buf (concat buf "\n  - " example))
+		(setq buf (concat buf "\n  " jword))
+		(when (string< "" example) (setq buf (concat buf "\n  - " example)))
                                         ;	      (setq buf (concat buf "\n"))
-              )
 ;            (setq buf (concat buf "\n\n"))
-            (setq buf (concat buf "\n"))
+		(setq buf (concat buf "\n"))
 
-            (insert buf)
-            ); let
-          ); progn
-        );lambda
-      )
+		(insert buf)))))
 ;;
 ;;
 ;;
 (defun pdicv-scan-datablock (filename phys criteria-func)
   "[PDICV] scan a datablock"
-;  (insert (format "pdicv-scan-datablock (%s %d ...)\n" filename phys))
   (catch 'pdicv-scan-datablock
     (let* ((result ()) ;(match-count 0)
            (header (pdicv-get-header-info filename))
-           (offset (+ (-> header 'datablock-begins-at) (lsh phys 8)))
-	   (aligned (if (eq (-> header 'version) 'newdic4) t nil))
-;	   (bocu (-> header 'bocu))
+		   (block-size (-> header 'block-size))
+           (offset (+ (-> header 'datablock-begins-at) (* phys block-size)))
+		   (aligned (and (member (-> header 'version) '(newdic4 unicode-bocu-6)) t))
+		   ;; (bocu (-> header 'bocu))
            (head-word (nt:read-ushort (nt:read-from-file filename offset 2)))
            (blocks (logand 32767 head-word))
-           (block-length (- (lsh blocks 8) 2))
+           (block-length (- (* blocks block-size) 2))
            (field-size (if (zerop (logand 32768 head-word)) 2 4))
            (datablock (nt:read-from-file filename (+ offset 2) block-length))
                                         ;    (list blocks field-size datablock)
            (p 0)
-           (field-length 0)
+		   (field-length 0)
            (compress-length 0)
            (rest nil)
            (eword "") (eword-attrib 0)
@@ -309,19 +320,18 @@
       (while (< p block-length) ;    (while (< p field-size)
         (setq field-length
               (if (= field-size 2) (nt:read-ushort datablock p) (nt:read-ulong datablock p)) )
-        (if (zerop field-length) (throw 'pdicv-scan-datablock (nreverse result))); sfield-list))
-        (setq p (+ p field-size)) ;2¤Ê¤¤¤·4¥Ð¥¤¥È
-        (setq compress-length (nt:read-uchar datablock p)) ; °µ½ÌÄ¹
+        (when (zerop field-length) (throw 'pdicv-scan-datablock (nreverse result))); sfield-list))
+        (setq p (+ p field-size)) ;2’¤Ê’¤¤’¤·4’¥Ð’¥¤’¥È
+        (setq compress-length (nt:read-uchar datablock p)) ; ’°µ’½Ì’Ä¹
         (setq p (1+ p))
 
-        (if aligned (progn
-                      (setq eword-attrib (nt:read-uchar datablock p)) ; ¸«½Ð¤·¸ìÂ°À­
-                      (setq p (1+ p))
-                      ))
-                                        ; ¸«½Ð¤·¸ì°Ê¹ß¤ò¤È¤ê¤¢¤¨¤º rest ¤ËÆþ¤ì¤ë
+        (when aligned
+		  (setq eword-attrib (nt:read-uchar datablock p)) ; ’¸«’½Ð’¤·’¸ì’Â°’À­
+		  (setq p (1+ p)))
+                                        ; ’¸«’½Ð’¤·’¸ì’°Ê’¹ß’¤ò’¤È’¤ê’¤¢’¤¨’¤º rest ’¤Ë’Æþ’¤ì’¤ë
         (setq rest (substring datablock p (+ p field-length)))
         (setq p (+ p field-length))
-                                        ; ¸«½Ð¤·¸ì (NULL½ªÃ¼)
+                                        ; ’¸«’½Ð’¤·’¸ì (NULL’½ª’Ã¼)
         (let* ((eword-cstr (nt:read-cstring rest))
                (eword-compressed (car eword-cstr)) (eword-len (cdr eword-cstr))
                (q 0)
@@ -329,19 +339,17 @@
                (extended nil)
                (jword-cstr nil) (jword "") (jword-len 0)
                (ext-list nil)
-               (example "") (pron "") (link "")
-               )
+               (example "") (pron "") (link ""))
 
           (setq eword (if (zerop compress-length)
                           eword-compressed
-                        (concat (substring eword 0 compress-length) eword-compressed)
-                        ))
+                        (concat (substring eword 0 compress-length) eword-compressed) ))
           (setq q (1+ eword-len))
-                                        ; ¸«½Ð¤·¸ìÂ°À­
-          (if (not aligned) (progn
-                              (setq eword-attrib (nt:read-uchar rest q))
-                              (setq q (1+ q))
-                              ))
+                                        ; ’¸«’½Ð’¤·’¸ì’Â°’À­
+          (when (not aligned)
+			(setq eword-attrib (nt:read-uchar rest q))
+			(setq q (1+ q)))
+
           (setq level (logand eword-attrib 15))
 ;	  (insert (format ": %s %d %d\n" eword eword-len eword-attrib))
 ;;	  (if (zerop (logand eword-attrib 128))
@@ -350,7 +358,7 @@
 
           (setq extended (if (zerop (logand eword-attrib 16)) nil t))
           (if extended
-              (progn ;³ÈÄ¥
+              (progn ;’³È’Ä¥
                 (setq jword-cstr (nt:read-cstring rest q))
                 (setq jword (car jword-cstr)) (setq jword-len (cdr jword-cstr))
                 (setq q (+ q jword-len 1))
@@ -361,7 +369,7 @@
                            (ex-attrib-sub (logand ex-attrib 15))
                            (exdata-cstr nil)
                            (exdata "") (exdata-len 0) )
-                      (if (= (logand ex-attrib 128) 128) (throw 'while t))
+                      (when (= (logand ex-attrib 128) 128) (throw 'while t))
                       (setq q (1+ q))
                       (setq exdata-cstr (nt:read-cstring rest q))
                       (setq exdata (car exdata-cstr))
@@ -376,22 +384,18 @@
                     ) ; while
                   ) ; catch while2
                 ) ; progn
-            (progn ;É¸½à
+            (progn ;’É¸’½à
               (setq jword (substring rest q))
               (setq pron "")
-              (setq example "")
-              ) ; progn
+              (setq example ""))
             ) ; if extended
 
                                         ;	  (insert (format "- %s\n" eword))
-          (if (funcall criteria-func eword pron jword example)
-              (push (list eword pron jword example) result))
+          (when (funcall criteria-func eword pron jword example)
+			(push (list eword pron jword example) result))
           );let
         ); wend
-      (nreverse result)
-      ); let*
-    ) ;catch(0)
-  )
+      (nreverse result))))
 
 (defun pdicv-core-search (dicinfo criteria &optional simple-mode-p dont-clear-p)
   "search in PDIC"
@@ -399,12 +403,11 @@
          (dicfile (nth 1 dicinfo))
          (encoding-list (nth 2 dicinfo))
          (decoder-list ())
-         (index-table (-> pdicv-index-table-list dicname))
-         )
+         (index-table (-> pdicv-index-table-list dicname)))
 ;    (if (null index-table) (setq index-table (pdicv-get-index-list dicfile)))
 
-    (if (atom encoding-list) ;; expand encoding-list
-        (setq encoding-list (list encoding-list encoding-list encoding-list encoding-list)))
+    (when (atom encoding-list) ;; expand encoding-list
+	  (setq encoding-list (list encoding-list encoding-list encoding-list encoding-list)))
  
     (while encoding-list ;; build the decoder-list
       (let ((encoding (car encoding-list)))
@@ -413,11 +416,8 @@
          ((eq encoding 'sjis) (push pdicv-sjis-decoder decoder-list))
          ((eq encoding 'latin1) (push pdicv-latin1-decoder decoder-list))
          (encoding (push (pdicv-create-decoder encoding) decoder-list))
-         (t (push pdicv-null-decoder decoder-list))
-         );cond
-        );let
-      (setq encoding-list (cdr encoding-list))
-      );wend
+         (t (push pdicv-null-decoder decoder-list))))
+      (setq encoding-list (cdr encoding-list)))
     (setq decoder-list (nreverse decoder-list))
 
     (catch 'pdicv-core-search
@@ -437,58 +437,43 @@
 
              (ix index-table) (index-size (length ix)) (curr-size index-size)
              (ix+ (cadr ix)); next one
-             (match-count 0)
-             )
+             (match-count 0))
 
 ;	  (switch-to-buffer pdicv-buffer-name)
         (save-current-buffer
           (set-buffer pdicv-buffer)
-          (if (null dont-clear-p) (erase-buffer))
+          (when (null dont-clear-p) (erase-buffer))
 
-          (if (not simple-mode-p)
-              (progn
+          (when (not simple-mode-p)
                                         ;(pop-to-buffer pdicv-buffer-name)
                                         ;              (set-buffer pdicv-buffer-name)
-                (insert (format "¸¡º÷Ê¸»úÎó: %s\n" word-to-search))
-                (insert (format "³ºÅö·ï¿ô: ????\n"))
-                (newline))
+			(insert (format "’¸¡’º÷’Ê¸’»ú’Îó: %s\n" word-to-search))
+			(insert (format "’³º’Åö’·ï’¿ô: ????\n"))
+			(newline))
                                         ;(insert "\n"))
-            )
-          (if index-needles
-              (setq ix
-                    (let ((p ix) (last-p nil))
-                      (catch 'pdicv-search-in-index
-                        (while p
-                          (let* ((elem (car p))
-                                        ;(phys (car elem))
-                                 (word (cdr elem)) )
-
-                            (if (string< needle1 word) (throw 'pdicv-search-in-index last-p))
-                                        ; (if (string< needle2 word) (throw 'pdicv-search-in-index last-p))
-
+          (when index-needles
+			(setq ix
+				  (let ((p ix) (last-p nil))
+					(catch 'pdicv-search-in-index
+					  (while p
+						(let* ((elem (car p)) ;(phys (car elem))
+							   (word (cdr elem)))
+						  (if (string< needle1 word) (throw 'pdicv-search-in-index last-p))
+						  ;; (if (string< needle2 word) (throw 'pdicv-search-in-index last-p))
                             (setq last-p p)
-                            (setq p (cdr p))
-                            ); let
-                          ); wend
-                        last-p
-                        ); caught
-
-                      ); let
-                    ))
-
+                            (setq p (cdr p)) ))
+					  last-p))))
           (catch 'while
             (while ix
               (let* ((curr (car ix))
                      (phys (car curr)) (word (cdr curr))
-                                        ; (x (insert (format "* current ix: (%d %s)\n" phys word)))
+					 ;; (x (insert (format "* current ix: (%d %s)\n" phys word)))
                      (result (pdicv-scan-datablock dicfile phys datablock-criteria-func)); decoder-list nil))
                      (result-count (length result))
-                     (inserter pdicv-default-inserter)
-                     )
-
-                (if index-needles
-                    (if (string>= word needle2) (throw 'while t)))
-                                        ;		    (if (not (string< word (cdr index-needles))) (throw 'while t)))
+                     (inserter pdicv-default-inserter))
+                (when index-needles
+				  (when (string>= word needle2) (throw 'while t)))
+				;;  (if (not (string< word (cdr index-needles))) (throw 'while t)))
 
                                         ;		(insert (format "(%s with index %s ... %s)\n" 
                                         ;				word-to-search
@@ -504,39 +489,29 @@
                                           (funcall (nth 3 decoder-list) (nth 3 rec)); example
                                           )
                                  (setq match-count (1+ match-count))
-                                 )
-                               );wend
+                                 ))
                              (message "%5d/%5d:%7d" curr-size index-size match-count)
-                             (sit-for 0)
-                             )
-                  (progn ;else
-                    (if (zerop (% curr-size 128)) ;;128¤ÏÅ¬Åö¤Ê¿ô
-                        (message "%5d/%5d:%7d" curr-size index-size match-count))
-                    ));fi
-                );let*
+                             (sit-for 0))
+                  ;;else
+				  (when (zerop (% curr-size 128)) ;;128’¤Ï’Å¬’Åö’¤Ê’¿ô
+					(message "%5d/%5d:%7d" curr-size index-size match-count))))
               (setq ix (cdr ix))
               (setq curr-size (1- curr-size))
               );wend
             );caught
 
-                                        ;(insert (pdicv-scan-datablock dicfile (car (car ix)) decoder-list nil needle1 needle2))
+		  ;;(insert (pdicv-scan-datablock dicfile (car (car ix)) decoder-list nil needle1 needle2))
           (goto-char 1)
 
-          (if (not simple-mode-p)
-              (if (re-search-forward ": [?][?][?][?]" nil t nil)
-                  (replace-match (format ": %d" match-count) t t nil 0))
-            );fi
-
+          (when (not simple-mode-p)
+			(when (re-search-forward ": [?][?][?][?]" nil t nil)
+			  (replace-match (format ": %d" match-count) t t nil 0)))
           ); save-current-buffer
 
 ;      (pop-to-buffer (current-buffer))
 ;        (setq split-height-threshold 6)
-        (if (one-window-p)
-            (set-window-buffer (split-window-vertically (- pdicv-result-height)) pdicv-buffer)
-          )
-        ); let*
-      ); caught
-    );let*
-  )
+        (when (one-window-p)
+		  (set-window-buffer (split-window-vertically (- pdicv-result-height)) pdicv-buffer))
+        ))))
 
 ;;; pdicv-core.el ends here

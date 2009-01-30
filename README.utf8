@@ -4,6 +4,7 @@
 
 　　アルク刊「英辞郎」赤本・黒本CD-ROMに収録されているPDIC形式の辞書データや、
 　　インターネット上で入手可能なPDIC形式の様々な辞書データリソースが利用できます。
+　　[NEW]アルク刊「英辞郎 第四版」に収録されているUnicodeタイプの英辞郎データにも対応しました！(2009/1)
 
 　　Unicode(BOCU)辞書にも対応しています。（要(?)Mule-UCS）
 
@@ -27,11 +28,9 @@
 
 ◎ 作者連絡先
 
-　　Naochan (Naoya TOZUKA) <pdicviewer@gmail.com>
-　　http://www.naochan.com/
-　　http://d.hatena.ne.jp/naoya_t/
+　　naoya_t <naoya.t@aqua.plala.or.jp>
+　　http://blog.livedoor.jp/naoya_t/
+   
 
 ◎ 一次配布元
-
-　　http://pdicviewer.naochan.com/el/
-
+   svn://lambdarepos.svnrepository.com/svn/share/lang/elisp/pdicv-mode/trunk

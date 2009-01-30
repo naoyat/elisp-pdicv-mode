@@ -1,10 +1,11 @@
 ;;; nt-readval.el --- read value or a string from buffer
 ;;
-;; Copyright (C) 2005 Naoya TOZUKA. All Rights Reserved.
+;; Copyright (C) 2005-2009 naoya_t. All Rights Reserved.
 ;;
-;; Author: Naoya TOZUKA <pdicviewer@gmail.com>
-;; Maintainer: Naoya TOZUKA <pdicviewer@gmail.com>
-;; Primary distribution site: http://pdicviewer.naochan.com/el/
+;; Author: naoya_t <naoya.t@aqua.plala.or.jp>
+;; Maintainer: naoya_t <naoya.t@aqua.plala.or.jp>
+;; Primary distribution site:
+;;   http://lambdarepos.svnrepository.com/svn/share/lang/elisp/pdicv-mode/trunk
 ;;
 ;; Created: 06 Feb 2005
 ;; Last modified: 15 Dec 2005 (defun --> defsubst)
@@ -28,9 +29,7 @@
   (catch 'uchar
     (if (not index) (setq index 0))
     (if (or (< index 0) (<= (length s) index)) (throw 'uchar 'out-of-bounds-exception))
-    (aref s index)
-    )
-  )
+    (aref s index)))
 
 ;;===========================================================
 ;; char - read (signed) char value (1-byte) from buffer
@@ -47,10 +46,7 @@
       (if (not index) (setq index 0))
       (if (or (< index 0) (<= (length s) index)) (throw 'char 'out-of-bounds-exception))
       (setq c (aref s index))
-      (if (< c 128) c (- c 256)) ; =result
-      ); let
-    ); caught
-  )
+      (if (< c 128) c (- c 256))))) ; =result
 
 ;;==============================================================
 ;; ushort - read unsigned short value (2-byte) from buffer
@@ -62,9 +58,7 @@
     (if (not index) (setq index 0))
     (if (or (< index 0) (< (- (length s) 2) index)) (throw 'ushort 'out-of-bounds-exception))
     (+ (lsh (aref s (1+ index)) 8)
-       (aref s index))
-    )
-  )
+       (aref s index))))
 
 (defsubst nt:read-ushort-bigendian (s &optional index)
   "2-byte string (big-endian) --> unsigned short"
@@ -72,9 +66,7 @@
     (if (not index) (setq index 0))
     (if (or (< index 0) (< (- (length s) 2) index)) (throw 'ushort 'out-of-bounds-exception))
     (+ (lsh (aref s index) 8)
-       (aref s (1+ index)))
-    )
-  )
+       (aref s (1+ index)))))
 
 (defmacro nt:read-ushort-littleendian (s &optional index)
   "2-byte string (little-endian as default) --> unsigned short"
@@ -89,20 +81,14 @@
   (catch 'short
     (let ((us (nt:read-ushort s index)))
       (if (eq us 'out-of-bounds-exception) (throw 'short us))
-      (if (< us 32768) us (- us 65536))
-      ) ; let
-    );caught
-  )
+      (if (< us 32768) us (- us 65536)))))
 
 (defsubst nt:read-short-bigendian (s &optional index)
   "2-byte string (big-endian) --> signed short"
   (catch 'short
     (let ((us (nt:read-ushort-bigendian s index)))
       (if (eq us 'out-of-bounds-exception) (throw 'short us))
-      (if (< us 32768) us (- us 65536))
-      ) ; let
-    )
-  )
+      (if (< us 32768) us (- us 65536)))))
 
 (defmacro nt:read-short-littleendian (s &optional index)
   "2-byte string (little-endian as default) --> signed short"
@@ -122,25 +108,18 @@
     (if (not index) (setq index 0))
     (if (or (< index 0) (< (- (length s) 4) index)) (throw 'long 'out-of-bounds-exception))
 
-    (let* (
-           (hh (aref s (+ index 3)))
-           (h0 (lsh hh -4))
-           )
-
+    (let* ((hh (aref s (+ index 3)))
+           (h0 (lsh hh -4)))
       (cond ((zerop h0) nil) ; plus
             ((= h0 15) nil) ; minus
                                         ;      (t (setq hh (logand 15 hh)))
             ((< h0 8) (throw 'long 'overflow-exception))
-            ((>= h0 8) (throw 'long 'underflow-exception))
-            )
+            ((>= h0 8) (throw 'long 'underflow-exception)))
                                         ;      (logior (lsh (aref s (+ index 3)) 24)
       (logior (lsh hh 24)
               (lsh (aref s (+ index 2)) 16)
               (lsh (aref s (1+ index)) 8)
-              (aref s index))
-      )
-    )
-  )
+              (aref s index)))))
 
 (defsubst nt:read-long-bigendian (s &optional index)
   "4-byte string (big-endian) --> signed long
@@ -149,25 +128,18 @@
     (if (not index) (setq index 0))
     (if (or (< index 0) (< (- (length s) 4) index)) (throw 'long 'out-of-bounds-exception))
 
-    (let* (
-           (hh (aref s index))
-           (h0 (lsh hh -4))
-           )
-
+    (let* ((hh (aref s index))
+           (h0 (lsh hh -4)))
       (cond ((zerop h0) nil) ; plus
             ((= h0 15) nil) ; minus
                                         ;      (t (setq hh (logand 15 hh)))
             ((< h0 8) (throw 'long 'overflow-exception))
-            ((>= h0 8) (throw 'long 'underflow-exception))
-            )
+            ((>= h0 8) (throw 'long 'underflow-exception)))
                                         ;      (logior (lsh (aref s (+ index 3)) 24)
       (logior (lsh hh 24)
               (lsh (aref s (1+ index)) 16)
               (lsh (aref s (+ index 2)) 8)
-              (aref s (+ index 3)))
-      )
-    )
-  )
+              (aref s (+ index 3))))))
 
 (defmacro nt:read-long-littleendian (s &optional index)
   "4-byte string (little-endian as default) --> signed long"
@@ -187,11 +159,8 @@
     (if (not index) (setq index 0))
     (if (or (< index 0) (< (- (length s) 4) index)) (throw 'ulong 'out-of-bounds-exception))
 
-    (let* (
-           (hh (aref s (+ index 3)))
-           (h0 (lsh hh -4))
-           )
-
+    (let* ((hh (aref s (+ index 3)))
+           (h0 (lsh hh -4)))
       (cond ((zerop h0) nil) ; plus
                                         ;      (t (setq hh (logand 15 hh)))
             (t (throw 'ulong 'overflow-exception)))
@@ -199,14 +168,7 @@
       (logior (lsh hh 24)
               (lsh (aref s (+ index 2)) 16)
               (lsh (aref s (1+ index)) 8)
-              (aref s index))
-      )
-    )
-
-;    (let ((sl (long s index)))
-;    (if (>= sl 0) sl 0)
-;    )
-  )
+              (aref s index)))))
 
 (defsubst nt:read-ulong-bigendian (s &optional index)
   "4-byte string (big-endian) --> unsigned long
@@ -215,11 +177,8 @@
     (if (not index) (setq index 0))
     (if (or (< index 0) (< (- (length s) 4) index)) (throw 'ulong 'out-of-bounds-exception))
 
-    (let* (
-           (hh (aref s index))
-           (h0 (lsh hh -4))
-           )
-
+    (let* ((hh (aref s index))
+           (h0 (lsh hh -4)))
       (cond ((zerop h0) nil) ; plus
                                         ;      (t (setq hh (logand 15 hh)))
             (t (throw 'ulong 'overflow-exception)))
@@ -227,14 +186,7 @@
       (logior (lsh hh 24)
               (lsh (aref s (1+ index)) 16)
               (lsh (aref s (+ index 2)) 8)
-              (aref s (+ index 3)))
-      )
-    )
-
-;    (let ((sl (long s index)))
-;    (if (>= sl 0) sl 0)
-;    )
-  )
+              (aref s (+ index 3))))))
 
 (defmacro nt:read-ulong-littleendian (s &optional index)
   "4-byte string (little-endian as default) --> unsigned long"
@@ -254,15 +206,10 @@ returns (string . length)"
     (let ( (ofs 0) (ofs-max (- (length s) index)) )
 ;     (if (> ofs-max 248) (setq ofs-max 248))
       (while (< ofs ofs-max)
-        (if (zerop (aref s (+ index ofs))) 
-            (throw 'cstring (cons (substring s index (+ index ofs)) ofs) )
-          )
-        (setq ofs (1+ ofs))
-        )
-      (cons (substring s index nil) ofs-max)
-      )
-    )
-  )
+        (if (zerop (aref s (+ index ofs)))
+            (throw 'cstring (cons (substring s index (+ index ofs)) ofs) ))
+        (setq ofs (1+ ofs)))
+      (cons (substring s index nil) ofs-max))))
 
 ;;==============================================
 ;; pstring - read a Pascal-string from buffer
@@ -277,10 +224,7 @@ returns (string . length)"
     (let ( (ofs 0) (ofs-max (- (length s) index))
            (size (nt:read-uchar s index)) )
       (if (> (1+ size) ofs-max) (throw 'pstring 'out-of-bounds-exception))
-      (throw 'pstring (cons (substring s (1+ index) (+ index 1 size)) size) )
-      ); let
-    ); caught
-  )
+      (throw 'pstring (cons (substring s (1+ index) (+ index 1 size)) size) ))))
 
 (defsubst nt:read-bcd (s ofs bytes)
   "read BCD value"
@@ -288,10 +232,7 @@ returns (string . length)"
     (while (< i bytes)
       (setq c (aref s (+ ofs i)))
       (setq n (+ (* n 100) (* (lsh c -4) 10) (logand c #x0f)))
-      (setq i (1+ i)) ;; (++ i)
-      );wend
-    n
-    );let
-  )
+      (setq i (1+ i))) ;; (++ i)
+    n))
 
 ;;; nt-readval.el ends here

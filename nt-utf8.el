@@ -1,11 +1,12 @@
 ;;; nt-utf8.el --- converter between utf-8 and rawcode
 ;;;             some functions require Mule-UCS
 ;;
-;; Copyright (C) 2005 Naoya TOZUKA. All Rights Reserved.
+;; Copyright (C) 2005-2009 naoya_t. All Rights Reserved.
 ;;
-;; Author: Naoya TOZUKA <pdicviewer@gmail.com>
-;; Maintainer: Naoya TOZUKA <pdicviewer@gmail.com>
-;; Primary distribution site: http://pdicviewer.naochan.com/el/
+;; Author: naoya_t <naoya.t@aqua.plala.or.jp>
+;; Maintainer: naoya_t <naoya.t@aqua.plala.or.jp>
+;; Primary distribution site:
+;;   http://lambdarepos.svnrepository.com/svn/share/lang/elisp/pdicv-mode/trunk
 ;;
 ;; Created: 14 Feb 2005
 ;; Last modified: 15 Dec 2005

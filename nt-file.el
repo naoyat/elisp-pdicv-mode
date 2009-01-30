@@ -1,10 +1,11 @@
 ;;; nt-file.el --- file-related functions
 ;;
-;; Copyright (C) 2005 Naoya TOZUKA. All Rights Reserved.
+;; Copyright (C) 2005-2009 naoya_t. All Rights Reserved.
 ;;
-;; Author: Naoya TOZUKA <pdicviewer@gmail.com>
-;; Maintainer: Naoya TOZUKA <pdicviewer@gmail.com>
-;; Primary distribution site: http://pdicviewer.naochan.com/el/
+;; Author: naoya_t <naoya.t@aqua.plala.or.jp>
+;; Maintainer: naoya_t <naoya.t@aqua.plala.or.jp>
+;; Primary distribution site:
+;;   http://lambdarepos.svnrepository.com/svn/share/lang/elisp/pdicv-mode/trunk
 ;;
 ;; Created: 16 Feb 2005 (formerly nt-utils)
 ;; Last modified: 15 Dec 2005
@@ -37,10 +38,7 @@
                                         ;    (setq buffer-read-only t)
       (setq my-buffer (buffer-substring 1 (+ 1 read-length)))
       (kill-buffer buffer-name)
-      my-buffer
-      ) ; let
-    ) ; save-current-buffer
-  )
+      my-buffer)))
 
 (defun nt:scan-latest-version (filename-format min max)
   (catch 'scan-latest-version
@@ -48,13 +46,7 @@
       (while (>= version min)
         (let ((file (format filename-format version)))
           (if (file-readable-p file) (throw 'scan-latest-version (list file version))
-            (setq version (1- version))
-            );fi
-          );let
-        );wend
-      nil
-      );let
-    );caught
-  )
+            (setq version (1- version)))))
+      nil)))
 
 ;;; nt-file.el ends here

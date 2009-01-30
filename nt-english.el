@@ -1,10 +1,11 @@
 ;;; nt-english.el --- English
 ;;
-;; Copyright (C) 2005 Naoya TOZUKA. All Rights Reserved.
+;; Copyright (C) 2005-2009 naoya_t. All Rights Reserved.
 ;;
-;; Author: Naoya TOZUKA <pdicviewer@gmail.com>
-;; Maintainer: Naoya TOZUKA <pdicviewer@gmail.com>
-;; Primary distribution site: http://pdicviewer.naochan.com/el/
+;; Author: naoya_t <naoya.t@aqua.plala.or.jp>
+;; Maintainer: naoya_t <naoya.t@aqua.plala.or.jp>
+;; Primary distribution site:
+;;   http://lambdarepos.svnrepository.com/svn/share/lang/elisp/pdicv-mode/trunk
 ;;
 ;; Created: 23 Dec 2005
 ;; Last modified: 23 Dec 2005
@@ -260,8 +261,7 @@
     (cond
      ((null word) (throw 'block nil))
      ((string= word "") (throw 'block nil))
-     (t nil)
-     )
+	 (t nil))
     
     (let* ((word-len (length word))
            (body-1 nil) (suffix-1 nil)
@@ -272,29 +272,21 @@
       (setq body-1 (substring word 0 -1))
       (setq suffix-1 (substring word -1 nil))
 
-      (if (>= word-len 2)
-          (progn
-           (setq body-2 (substring word 0 -2))
-           (setq suffix-2 (substring word -2 nil))
-           
-           (if (>= word-len 3)
-               (progn
-                (setq body-3 (substring word 0 -3))
-                (setq suffix-3 (substring word -3 nil))
-                
-                (if (>= word-len 4)
-                    (progn
-                     (setq body-4 (substring word 0 -4))
-                     (setq suffix-4 (substring word -4 nil))
-                     ))
-                ))
-           ))
+      (when (>= word-len 2)
+		(setq body-2 (substring word 0 -2))
+		(setq suffix-2 (substring word -2 nil))
+		(when (>= word-len 3)
+		  (setq body-3 (substring word 0 -3))
+		  (setq suffix-3 (substring word -3 nil))
+		  (when (>= word-len 4)
+			(setq body-4 (substring word 0 -4))
+			(setq suffix-4 (substring word -4 nil)))))
       
       ;; irregular verbs/nouns first.
       (setq tmp (cdr (assoc word nt-english-irreg-verbs-list)))
-      (if tmp (throw 'block (list tmp)))
+      (when tmp (throw 'block (list tmp)))
       (setq tmp (cdr (assoc word nt-english-irreg-nouns-list)))
-      (if tmp (throw 'block (list tmp)))
+      (when tmp (throw 'block (list tmp)))
       
       (cond
        ((string= suffix-3 "ves") (list (concat body-3 "fe") (concat body-3 "f") body-1)) ;; -f > -ves
@@ -327,11 +319,7 @@
        ((string= suffix-2 "'d") (list body-2))
        ((string= suffix-2 "'s") (list body-2))
       
-       (t nil) ;; 推測候補がない場合は 空リスト を返す。
-       ) ;cond
-      ) ;let
-    );caught
-  )
+       (t nil))))) ;; 推測候補がない場合は 空リスト を返す。
 
 (defmacro nt:skipit-p (word)
   `(if (member (downcase ,word) nt-skip-words) t nil))
