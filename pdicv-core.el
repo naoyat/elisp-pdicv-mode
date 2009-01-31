@@ -99,8 +99,10 @@
       (when (> (logand dictype 8) 0) (setq dictype* (cons 'bocu dictype*)))
       (when (> (logand dictype 1) 0) (setq dictype* (cons 'ar-compressed dictype*)))
 
-	  (case major-version
-		(6 "Ver 6.xx"
+	  ;;(case major-version
+	  (cond
+	   ((= major-version 6)
+		;;(6 "Ver 6.xx"
 		   (setq os (nt:read-char header-buf 167))
 		   (setq os (cond ((= os 0) 'sjis-crlf)
 						  ((= os 1) 'sjis-cr)
@@ -126,7 +128,8 @@
                                         ;(setq dummy (substring header-buf 224 256))
 		   (setq index-size (* index-block block-size)) ;overwrite
 		   );6
-		(5 "HyperDIC, Ver 5.00"
+	   ((= major-version 5)
+		;;(5 "HyperDIC, Ver 5.00"
 		   (setq os (nt:read-char header-buf 167))
 		   (setq os (cond ((= os 0) 'sjis-crlf)
 						  ((= os 1) 'sjis-cr)
@@ -151,7 +154,7 @@
                                         ;(setq dummy (substring header-buf 224 256))
 		   (setq index-size (* index-block block-size)) ;overwrite
 		   );5
-		(t "< 5.0"
+	   (t "< 5.0"
 		   (when (>= major-version 3)
 			 "NEWDIC2-"
 			 (setq olenumber (nt:read-long header-buf 167))
