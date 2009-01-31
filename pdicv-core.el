@@ -218,7 +218,7 @@
 				    (-> header 'index-begins-at) (-> header 'index-size)))
 
          (32bit-address-mode (if (= (-> header 'index-blkbit) 32) t nil))
-		 (tab-sep-p (if (eq 'unicode-bocu-6 (-> header 'version)) t nil))
+		 (tab-sep-p (eq 'unicode-bocu-6 (-> header 'version)))
 
          (ix 0) (ix-max (-> header 'nindex))
          (ofs 0)
@@ -300,6 +300,7 @@
   (catch 'pdicv-scan-datablock
     (let* ((result ()) ;(match-count 0)
            (header (pdicv-get-header-info filename))
+		   (tab-sep-p (eq 'unicode-bocu-6 (-> header 'version)))
 		   (block-size (-> header 'block-size))
            (offset (+ (-> header 'datablock-begins-at) (* phys block-size)))
 		   (aligned (and (member (-> header 'version) '(newdic4 unicode-bocu-6)) t))
@@ -345,7 +346,7 @@
                           eword-compressed
                         (concat (substring eword 0 compress-length) eword-compressed) ))
           (setq q (1+ eword-len))
-                                        ; ’¸«’½Ð’¤·’¸ì’Â°’À­
+		  ;; ’¸«’½Ð’¤·’¸ì’Â°’À­
           (when (not aligned)
 			(setq eword-attrib (nt:read-uchar rest q))
 			(setq q (1+ q)))
@@ -390,9 +391,16 @@
               (setq example ""))
             ) ; if extended
 
-                                        ;	  (insert (format "- %s\n" eword))
-          (when (funcall criteria-func eword pron jword example)
-			(push (list eword pron jword example) result))
+		  (if tab-sep-p
+			  (let* ((splitted (split-string eword "\t"))
+					 (eword (car splitted))
+					 (entry (cadr splitted)))
+				(when (funcall criteria-func entry eword pron jword example)
+				  (push (list entry pron jword example) result)))
+			(when (funcall criteria-func eword eword pron jword example)
+			  (push (list eword pron jword example) result)))
+		  ;;(when (funcall criteria-func eword pron jword example)
+		  ;;	(push (list eword pron jword example) result))
           );let
         ); wend
       (nreverse result))))

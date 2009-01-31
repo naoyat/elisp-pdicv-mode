@@ -70,16 +70,10 @@
               (progn
                 (message "Loading index-table for %s (\"%s\")..." dicname path)
                 (setq index-table (pdicv-get-index-list path word-encoding))
-                (push (cons dicname index-table) pdicv-index-table-list))
-            );fi
-          );let*
-        (setq diclist (cdr diclist))
-        );wend
+                (push (cons dicname index-table) pdicv-index-table-list)) ))
+        (setq diclist (cdr diclist)))
       (setq pdicv-inited-p t)
-      (message "Done.")
-      ); let
-    );caught
-  )
+      (message "Done.") )))
 
 (defun pdicv-search-regexp (dicname regexp-to-search &optional field-to-search)
   ""
@@ -147,7 +141,7 @@
 ;				'(lambda (ix) (let ((word (cadr (car ix))))
 ;						(string-match needle1 word)))
 ;				)
-                                `(lambda (e p j x) (string-match ,needle1 ,field-to-search))
+                                `(lambda (e_ e p j x) (string-match ,needle1 ,field-to-search))
                                 );list
                     (list
                      candidate    ; 検索文字列（これは結果表示にしか用いられない）
@@ -156,24 +150,14 @@
                                         ;				   (and (not (string< word needle1))
                                        ;					(string< word needle2))))
                      (if just-p
-                         `(lambda (e p j x) (zerop (nt:strcmp ,field-to-search ,needle1)))
-                       `(lambda (e p j x) (and (not (string< ,field-to-search ,needle1))
-                                               (string< ,field-to-search ,needle2))) ; データブロック検索用。
-                       );just-p
-                     );list
-                    ));fi,criteria
-
-                 );let*
+                         `(lambda (e_ e p j x) (zerop (nt:strcmp ,field-to-search ,needle1)))
+                       `(lambda (e_ e p j x) (and (not (string< ,field-to-search ,needle1))
+												  (string< ,field-to-search ,needle2))) ; データブロック検索用。
+                       )))))
                                         ;	  (insert (format "%s" criteria))
             (pdicv-core-search dicinfo criteria simple-mode-p (not first-round-p)) ; clear only at the first time
-            );let*
-          );fi
-        (setq first-round-p nil)
-        );wend
-      );let
-    );caught
-  )
- ;;debug
+            ))
+        (setq first-round-p nil)))))
 
 (defun pdicv-search-interactive ()
   (interactive)
@@ -186,27 +170,19 @@
       (setq word-to-search
             (read-from-minibuffer "Word to search: "))
       (if (> (length word-to-search) 0)
-          (pdicv-search (intern dicname) word-to-search))
-      );let
-    );caught
-  )
-
+          (pdicv-search (intern dicname) word-to-search)) )))
 
 (defun pdicv-search-region (from to)
   ""
   (interactive "r")
   (let ((dicname (completing-read "Target dictionary: " pdicv-dictionary-list nil t "")))
-    (if dicname (pdicv-search (intern dicname) (buffer-substring from to)))
-    );let
-  )
+    (if dicname (pdicv-search (intern dicname) (buffer-substring from to))) ))
 
 (defun pdicv-set-target-dictionary ()
   ""
   (interactive)
   (let ((dicname (completing-read "Target dictionary: " pdicv-dictionary-list nil t "")))
-    (if dicname (setq pdicv-target-dictionary (intern dicname)))
-    );let
-  )
+    (if dicname (setq pdicv-target-dictionary (intern dicname))) ))
 
 (defun pdicv-search-current-word ()
   ""
@@ -216,9 +192,7 @@
   (let ((word (thing-at-point 'word)))
     (if word;(and word (not (nt:skipit-p word-to-search)))
         (pdicv-search-just pdicv-target-dictionary word)
-      (message "no word at cursor"))
-    );let
-  )
+      (message "no word at cursor")) ))
 
 (defun pdicv-search-next-word ()
   ""
@@ -236,17 +210,12 @@
         (setq word (thing-at-point 'word))
         (if (and word (not (nt:skipit-p word)))
             (pdicv-search-just pdicv-target-dictionary word)
-          (message "no word at cursor"));fi
-        );progn
-      );fi
-    );let
-  )
+          (message "no word at cursor")) ))))
 
 (defun pdicv-search-previous-word ()
   ""
   (interactive)
   (forward-word -1) ; (backward-word 1)
-  (pdicv-search-current-word)
-  )
+  (pdicv-search-current-word))
 
 ;;; pdicv-search.el ends here
