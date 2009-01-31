@@ -18,16 +18,16 @@
 ;;; Commentary:
 
 ; (pdicv-get-header-info FILENAME)
-;    - ’¥Ø’¥Ã’¥À’¾ğ’Êó’¤ò’ÆÉ’¤ß’¼è’¤ë
+;    - ãƒ˜ãƒƒãƒ€æƒ…å ±ã‚’èª­ã¿å–ã‚‹
 ;
 ; (pdicv-get-index-list FILENAME [WORD-ENCODING])
-;    - PDIC’¼­’½ñ’¥Õ’¥¡’¥¤’¥ë’¤«’¤é’¡¢’¥¤’¥ó’¥Ç’¥Ã’¥¯’¥¹’¥ê’¥¹’¥È’¤ò’¼è’ÆÀ
+;    - PDICè¾æ›¸ãƒ•ã‚¡ã‚¤ãƒ«ã‹ã‚‰ã€ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒªã‚¹ãƒˆã‚’å–å¾—
 ;
 ; (pdicv-scan-datablock FILENAME PHYS CRITERIA-FUNC)
-;    - ’¥Ç’¡¼’¥¿’¥Ö’¥í’¥Ã’¥¯’¤ò’¥¹’¥­’¥ã’¥ó
+;    - ãƒ‡ãƒ¼ã‚¿ãƒ–ãƒ­ãƒƒã‚¯ã‚’ã‚¹ã‚­ãƒ£ãƒ³
 ;
 ; (pdicv-core-search DICINFO CRITERIA [SIMPLE-MODE-P DONT-CLEAR-P])
-;    - PDIC’¸¡’º÷’¡Ê’¥³’¥¢’¥ë’¡¼’¥Á’¥ó’¡Ë
+;    - PDICæ¤œç´¢ï¼ˆã‚³ã‚¢ãƒ«ãƒ¼ãƒãƒ³ï¼‰
 ;
 
 ;;; Code:
@@ -51,7 +51,7 @@
 
 (defvar pdicv-result-height 8)
 ;
-; ’¥Ø’¥Ã’¥À’¾ğ’Êó’¤ò’ÆÉ’¤ß’¼è’¤ë
+; ãƒ˜ãƒƒãƒ€æƒ…å ±ã‚’èª­ã¿å–ã‚‹
 ;
 (defun pdicv-get-header-info (filename)
   "[PDIC] Get Header Info"
@@ -281,7 +281,7 @@
                                         ;	(set-text-properties 0 (length eword) '(face pdicv-face-caption-green) eword)
                                         ;	(set-text-properties 0 (length jword) '(face pdicv-face-caption-gray) jword)
 
-	  (setq jword (nt:replace-all jword "’¢®’¡ü" " // "))
+	  (setq jword (nt:replace-all jword "ã€“â—" " // "))
 	  (setq jword (nt:replace-all jword "\n" "\n  "))
 
 	  (let ((buf ""))
@@ -325,17 +325,17 @@
         (setq field-length
               (if (= field-size 2) (nt:read-ushort datablock p) (nt:read-ulong datablock p)) )
         (when (zerop field-length) (throw 'pdicv-scan-datablock (nreverse result))); sfield-list))
-        (setq p (+ p field-size)) ;2’¤Ê’¤¤’¤·4’¥Ğ’¥¤’¥È
-        (setq compress-length (nt:read-uchar datablock p)) ; ’°µ’½Ì’Ä¹
+        (setq p (+ p field-size)) ;2ãªã„ã—4ãƒã‚¤ãƒˆ
+        (setq compress-length (nt:read-uchar datablock p)) ; åœ§ç¸®é•·
         (setq p (1+ p))
 
         (when aligned
-		  (setq eword-attrib (nt:read-uchar datablock p)) ; ’¸«’½Ğ’¤·’¸ì’Â°’À­
+		  (setq eword-attrib (nt:read-uchar datablock p)) ; è¦‹å‡ºã—èªå±æ€§
 		  (setq p (1+ p)))
-                                        ; ’¸«’½Ğ’¤·’¸ì’°Ê’¹ß’¤ò’¤È’¤ê’¤¢’¤¨’¤º rest ’¤Ë’Æş’¤ì’¤ë
+                                        ; è¦‹å‡ºã—èªä»¥é™ã‚’ã¨ã‚Šã‚ãˆãš rest ã«å…¥ã‚Œã‚‹
         (setq rest (substring datablock p (+ p field-length)))
         (setq p (+ p field-length))
-                                        ; ’¸«’½Ğ’¤·’¸ì (NULL’½ª’Ã¼)
+                                        ; è¦‹å‡ºã—èª (NULLçµ‚ç«¯)
         (let* ((eword-cstr (nt:read-cstring rest))
                (eword-compressed (car eword-cstr)) (eword-len (cdr eword-cstr))
                (q 0)
@@ -349,7 +349,7 @@
                           eword-compressed
                         (concat (substring eword 0 compress-length) eword-compressed) ))
           (setq q (1+ eword-len))
-		  ;; ’¸«’½Ğ’¤·’¸ì’Â°’À­
+		  ;; è¦‹å‡ºã—èªå±æ€§
           (when (not aligned)
 			(setq eword-attrib (nt:read-uchar rest q))
 			(setq q (1+ q)))
@@ -362,7 +362,7 @@
 
           (setq extended (if (zerop (logand eword-attrib 16)) nil t))
           (if extended
-              (progn ;’³È’Ä¥
+              (progn ;æ‹¡å¼µ
                 (setq jword-cstr (nt:read-cstring rest q))
                 (setq jword (car jword-cstr)) (setq jword-len (cdr jword-cstr))
                 (setq q (+ q jword-len 1))
@@ -388,7 +388,7 @@
                     ) ; while
                   ) ; catch while2
                 ) ; progn
-            (progn ;’É¸’½à
+            (progn ;æ¨™æº–
               (setq jword (substring rest q))
               (setq pron "")
               (setq example ""))
@@ -458,8 +458,8 @@
           (when (not simple-mode-p)
                                         ;(pop-to-buffer pdicv-buffer-name)
                                         ;              (set-buffer pdicv-buffer-name)
-			(insert (format "’¸¡’º÷’Ê¸’»ú’Îó: %s\n" word-to-search))
-			(insert (format "’³º’Åö’·ï’¿ô: ????\n"))
+			(insert (format "æ¤œç´¢æ–‡å­—åˆ—: %s\n" word-to-search))
+			(insert (format "è©²å½“ä»¶æ•°: ????\n"))
 			(newline))
                                         ;(insert "\n"))
           (when index-needles
@@ -504,7 +504,7 @@
                              (message "%5d/%5d:%7d" curr-size index-size match-count)
                              (sit-for 0))
                   ;;else
-				  (when (zerop (% curr-size 128)) ;;128’¤Ï’Å¬’Åö’¤Ê’¿ô
+				  (when (zerop (% curr-size 128)) ;;128ã¯é©å½“ãªæ•°
 					(message "%5d/%5d:%7d" curr-size index-size match-count))))
               (setq ix (cdr ix))
               (setq curr-size (1- curr-size))
